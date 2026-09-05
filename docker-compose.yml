@@ -1,0 +1,21 @@
+services:
+  shopnest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shopnest-ctf
+    ports:
+      - "${HOST_PORT:-9000}:3000"
+    volumes:
+      - shopnest-data:/app/data
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATA_DIR: /app/data
+    init: true
+    restart: unless-stopped
+
+volumes:
+  shopnest-data:
+    name: shopnest-data

@@ -211,34 +211,61 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
 - **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
-## Development
+## Development & Deployment
 
-### Quick Start
+### One-Line Setup (Recommended for Linux / CTF Hosts)
 
-Clone and run the startup script on your computer:
+On any fresh Linux machine with Docker, run:
 
-**Linux / macOS:**
-
-```sh
-git clone https://github.com/noyall-gf/ctf-meachine-.git
-cd ctf-meachine-
-sh start.sh
+```bash
+PORT=9000 bash setup.sh
 ```
 
-**Windows (PowerShell):**
+Or clone and start directly:
 
-```sh
+```bash
 git clone https://github.com/noyall-gf/ctf-meachine-.git
 cd ctf-meachine-
-./setup.ps1
+PORT=9000 bash setup.sh
 ```
 
-**Windows (Command Prompt):**
+- Application URL: `http://localhost:9000` (or `http://<LAN-IP>:9000`)
+- Pinned runtime: Node.js 22.13.0 inside Docker
+- Native SQLite (`better-sqlite3`) builds inside the container automatically.
+- Database persistence: stored in the Docker volume `shopnest-data`.
 
+### Container Management
+
+- **View container logs:**
+  ```bash
+  docker compose logs -f
+  ```
+- **Check container status:**
+  ```bash
+  docker compose ps
+  ```
+- **Restart services:**
+  ```bash
+  docker compose restart
+  ```
+- **Stop services (preserving database and CTF state):**
+  ```bash
+  docker compose down
+  ```
+- **Resume services:**
+  ```bash
+  docker compose up -d
+  ```
+
+### Windows Hosts
+
+**PowerShell:**
+```powershell
+git clone https://github.com/noyall-gf/ctf-meachine-.git; cd ctf-meachine-; ./start.ps1
+```
+
+**Command Prompt:**
 ```cmd
 git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && start.bat
 ```
 
-Open browser: `http://localhost:3000`.
-
-The setup scripts install the pinned Node.js runtime, project dependencies, and native build requirements automatically. The existing database and CTF state are preserved.
