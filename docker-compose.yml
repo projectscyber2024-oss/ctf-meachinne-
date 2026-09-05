@@ -2,7 +2,7 @@ services:
   shopnest:
     build: .
     ports:
-      - "${HOST_PORT:-3000}:3000"
+      - "${HOST_PORT:-9000}:3000"
     volumes:
       - shopnest-data:/app/data
     environment:

@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
+RUN node --input-type=module -e "import Database from 'better-sqlite3'; const db = new Database(':memory:'); db.prepare('SELECT 1').get(); db.close();"
+
 COPY . .
 COPY data/ctf.sqlite /app/seed-data/ctf.sqlite
 
@@ -25,7 +27,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 	&& chmod +x /usr/local/bin/docker-entrypoint.sh
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
 	CMD node -e "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 ENTRYPOINT ["docker-entrypoint.sh"]

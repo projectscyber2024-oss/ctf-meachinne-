@@ -1,5 +1,19 @@
 # ShopNest CTF Base
 
+## Run With Docker
+
+Prerequisite: a Linux/Kali machine with Git, Docker Engine, and the Docker Compose plugin installed. No host Node.js, npm, SQLite, Python, or compiler setup is required.
+
+Run the current CTF with one command:
+
+```bash
+git clone https://github.com/projectscyber2024-oss/ctf-meachinne-.git && cd ctf-meachinne- && docker compose up --build -d
+```
+
+Open `http://localhost:9000`. To access it from another device on the same network, use `http://<machine-ip>:9000`.
+
+The image uses Node.js 22, installs dependencies and compiles `better-sqlite3` inside the image, then starts the application. The committed current database is copied into a named Docker volume only on first start; existing volume data is preserved on rebuilds and restarts.
+
 Create a lightweight fictional e-commerce website for a cybersecurity CTF lab.
 
 Overall Design
