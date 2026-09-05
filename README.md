@@ -213,36 +213,6 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 
 ## Development
 
-### One-Command Setup
-
-Copy and run ONE command on your computer.
-
-**Linux (Ubuntu / Debian / Kali):**
-
-```bash
-sudo apt update && sudo apt install -y git docker.io docker-compose && sudo systemctl start docker && unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY && git config --global --unset http.proxy 2>/dev/null; git config --global --unset https.proxy 2>/dev/null; cd ~ && rm -rf ctf-meachine- && git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && sudo sh start.sh
-```
-
-**Linux / macOS (with Docker installed):**
-
-```bash
-git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && sh start.sh
-```
-
-**Windows (PowerShell):**
-
-```powershell
-git clone https://github.com/noyall-gf/ctf-meachine-.git; cd ctf-meachine-; docker compose up --build -d
-```
-
-**Windows (Command Prompt):**
-
-```cmd
-git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && docker compose up --build -d
-```
-
-Open browser: `http://localhost:9000`
-
 ### Quick Start
 
 Clone and run the startup script on your computer:
@@ -257,81 +227,18 @@ sh start.sh
 
 **Windows (PowerShell):**
 
-```powershell
+```sh
 git clone https://github.com/noyall-gf/ctf-meachine-.git
 cd ctf-meachine-
-docker compose up --build -d
+./setup.ps1
 ```
 
 **Windows (Command Prompt):**
 
 ```cmd
-git clone https://github.com/noyall-gf/ctf-meachine-.git
-cd ctf-meachine-
-docker compose up --build -d
+git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && start.bat
 ```
 
-Docker is the recommended reproducible setup. The older `setup.sh`, `setup.ps1`, and `setup.bat` scripts remain available for non-Docker development, but they require a host runtime and are not needed for the portable deployment.
+Open browser: `http://localhost:3000`.
 
-### Alternative: Manual Setup
-
-If you prefer to install dependencies yourself, install Node.js 20 LTS — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating). SQLite is included through the `better-sqlite3` dependency; a separate SQLite installation is not required.
-
-```sh
-git clone https://github.com/noyall-gf/ctf-meachine-.git
-cd ctf-meachine-
-npm ci
-npm run dev
-```
-
-### Docker: Portable One-Line Setup
-
-This is the recommended setup for running the CTF independently on many computers. Install Docker Desktop on each computer, then run one command from PowerShell, Command Prompt, or a terminal.
-
-**Windows PowerShell:**
-
-```powershell
-git clone https://github.com/noyall-gf/ctf-meachine-.git; cd ctf-meachine-; docker compose up --build -d
-```
-
-**Windows Command Prompt:**
-
-```cmd
-git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && docker compose up --build -d
-```
-
-**Linux/macOS:**
-
-```sh
-git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && sudo sh start.sh
-```
-
-Docker automatically provides the pinned Node.js 20 LTS runtime, installs the dependencies, and builds the native SQLite dependency inside the container. No Node.js, npm, Python, or compiler installation is needed on the host computer.
-
-Open `http://localhost:9000`. To access it from another device on the same network, use `http://<computer-ip>:9000`.
-
-On first startup, the committed seed database is copied into the persistent `shopnest-data` Docker volume. This preserves the existing users, admin, cart data, and flags. Later changes remain independent on each computer and survive container restarts.
-
-To use another host port, copy `.env.example` to `.env` and change `HOST_PORT`:
-
-```sh
-cp .env.example .env
-# Edit .env: HOST_PORT=3001
-docker compose up --build -d
-```
-
-The application still listens on port `3000` inside the container; `HOST_PORT` only changes the port exposed on the host.
-
-Stop the local instance with:
-
-```sh
-docker compose down
-```
-
-Rebuild and restart after code changes with:
-
-```sh
-docker compose up --build -d
-```
-
-To remove the local database volume too, use `docker compose down -v`.
+The setup scripts install the pinned Node.js runtime, project dependencies, and native build requirements automatically. The existing database and CTF state are preserved.
