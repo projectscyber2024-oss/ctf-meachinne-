@@ -11,21 +11,31 @@ echo "========================================"
 echo "[ShopNest CTF] Configuring CTF machine on host port: $APP_PORT"
 echo "[ShopNest CTF] Checking Docker..."
 
-# 1. Detect Docker installation
+# Determine sudo prefix if not running as root
+SUDO_PREFIX=""
+if [ "$(id -u 2>/dev/null || echo 1)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+  SUDO_PREFIX="sudo "
+fi
+
+# 1. Detect and install Docker if missing
 if ! command -v docker >/dev/null 2>&1; then
   echo "[ShopNest CTF] Docker is not installed on this system."
   if command -v apt-get >/dev/null 2>&1; then
-    echo "[ShopNest CTF] Detected Debian/Ubuntu/Kali system. Attempting to install Docker..."
-    if command -v sudo >/dev/null 2>&1; then
-      sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2
-      sudo systemctl enable --now docker 2>/dev/null || sudo service docker start 2>/dev/null || true
-    else
-      apt-get update && apt-get install -y docker.io docker-compose-v2
-      systemctl enable --now docker 2>/dev/null || service docker start 2>/dev/null || true
-    fi
+    echo "[ShopNest CTF] Detected Debian/Ubuntu/Kali system. Installing Docker..."
+    ${SUDO_PREFIX}apt-get update -y || true
+    ${SUDO_PREFIX}apt-get install -y docker.io || true
+    ${SUDO_PREFIX}systemctl enable --now docker 2>/dev/null || ${SUDO_PREFIX}service docker start 2>/dev/null || true
+  elif command -v dnf >/dev/null 2>&1; then
+    echo "[ShopNest CTF] Detected Fedora/RHEL system. Installing Docker..."
+    ${SUDO_PREFIX}dnf install -y docker docker-compose-plugin || true
+    ${SUDO_PREFIX}systemctl enable --now docker 2>/dev/null || true
+  elif command -v pacman >/dev/null 2>&1; then
+    echo "[ShopNest CTF] Detected Arch Linux system. Installing Docker..."
+    ${SUDO_PREFIX}pacman -Sy --noconfirm docker docker-compose || true
+    ${SUDO_PREFIX}systemctl enable --now docker 2>/dev/null || true
   else
     echo "[!] Please install Docker before running this script:"
-    echo "    - Debian / Ubuntu / Kali: sudo apt update && sudo apt install -y docker.io docker-compose-v2"
+    echo "    - Debian / Ubuntu / Kali: sudo apt update && sudo apt install -y docker.io docker-compose"
     echo "    - Fedora: sudo dnf install -y docker docker-compose-plugin && sudo systemctl enable --now docker"
     echo "    - Arch Linux: sudo pacman -S docker docker-compose && sudo systemctl enable --now docker"
     echo "    - Official Docker script: curl -fsSL https://get.docker.com | sh"
@@ -35,27 +45,23 @@ fi
 
 # 2. Check Docker daemon access and permissions
 DOCKER_BIN="docker"
-SUDO_PREFIX=""
+USE_SUDO_FOR_DOCKER=0
 
 if docker ps >/dev/null 2>&1; then
   DOCKER_BIN="docker"
-elif command -v sudo >/dev/null 2>&1 && sudo docker ps >/dev/null 2>&1; then
+elif [ -n "$SUDO_PREFIX" ] && sudo docker ps >/dev/null 2>&1; then
   DOCKER_BIN="sudo docker"
-  SUDO_PREFIX="sudo "
+  USE_SUDO_FOR_DOCKER=1
 else
-  # Attempt to start the docker service
+  # Attempt to start the docker daemon
   echo "[ShopNest CTF] Attempting to start Docker daemon..."
-  if command -v sudo >/dev/null 2>&1; then
-    sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null || true
-  else
-    systemctl start docker 2>/dev/null || service docker start 2>/dev/null || true
-  fi
+  ${SUDO_PREFIX}systemctl start docker 2>/dev/null || ${SUDO_PREFIX}service docker start 2>/dev/null || true
 
   if docker ps >/dev/null 2>&1; then
     DOCKER_BIN="docker"
-  elif command -v sudo >/dev/null 2>&1 && sudo docker ps >/dev/null 2>&1; then
+  elif [ -n "$SUDO_PREFIX" ] && sudo docker ps >/dev/null 2>&1; then
     DOCKER_BIN="sudo docker"
-    SUDO_PREFIX="sudo "
+    USE_SUDO_FOR_DOCKER=1
   else
     echo "[!] Error: Cannot connect to the Docker daemon."
     echo "    Please ensure Docker service is running: sudo systemctl start docker"
@@ -65,26 +71,50 @@ fi
 
 echo "[ShopNest CTF] Docker: OK"
 
-# 3. Detect Docker Compose command
+# 3. Detect and install Docker Compose if missing
 COMPOSE_CMD=""
 if $DOCKER_BIN compose version >/dev/null 2>&1; then
   COMPOSE_CMD="${DOCKER_BIN} compose"
-elif command -v docker-compose >/dev/null 2>&1 && ${SUDO_PREFIX}docker-compose version >/dev/null 2>&1; then
-  COMPOSE_CMD="${SUDO_PREFIX}docker-compose"
+elif command -v docker-compose >/dev/null 2>&1 && [ $USE_SUDO_FOR_DOCKER -eq 0 ] && docker-compose version >/dev/null 2>&1; then
+  COMPOSE_CMD="docker-compose"
+elif [ -n "$SUDO_PREFIX" ] && command -v docker-compose >/dev/null 2>&1 && sudo docker-compose version >/dev/null 2>&1; then
+  COMPOSE_CMD="sudo docker-compose"
 else
-  echo "[ShopNest CTF] Docker Compose plugin not found. Attempting installation..."
+  echo "[ShopNest CTF] Docker Compose not found. Attempting installation..."
   if command -v apt-get >/dev/null 2>&1; then
-    ${SUDO_PREFIX}apt-get update && ${SUDO_PREFIX}apt-get install -y docker-compose-v2 2>/dev/null || ${SUDO_PREFIX}apt-get install -y docker-compose 2>/dev/null || true
+    ${SUDO_PREFIX}apt-get install -y docker-compose-plugin 2>/dev/null || \
+    ${SUDO_PREFIX}apt-get install -y docker-compose 2>/dev/null || \
+    ${SUDO_PREFIX}apt-get install -y docker-compose-v2 2>/dev/null || true
+  fi
+
+  if $DOCKER_BIN compose version >/dev/null 2>&1; then
+    COMPOSE_CMD="${DOCKER_BIN} compose"
+  elif command -v docker-compose >/dev/null 2>&1 && [ $USE_SUDO_FOR_DOCKER -eq 0 ] && docker-compose version >/dev/null 2>&1; then
+    COMPOSE_CMD="docker-compose"
+  elif [ -n "$SUDO_PREFIX" ] && command -v docker-compose >/dev/null 2>&1 && sudo docker-compose version >/dev/null 2>&1; then
+    COMPOSE_CMD="sudo docker-compose"
+  else
+    # Direct binary fallback download from official Docker release
+    echo "[ShopNest CTF] Downloading Docker Compose CLI plugin directly..."
+    ARCH="$(uname -m 2>/dev/null || echo x86_64)"
+    case "$ARCH" in
+      x86_64) COMPOSE_ARCH="x86_64" ;;
+      aarch64|arm64) COMPOSE_ARCH="aarch64" ;;
+      armv7l) COMPOSE_ARCH="armv7" ;;
+      *) COMPOSE_ARCH="x86_64" ;;
+    esac
+    ${SUDO_PREFIX}mkdir -p /usr/local/lib/docker/cli-plugins 2>/dev/null || true
+    ${SUDO_PREFIX}curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-${COMPOSE_ARCH}" -o /usr/local/lib/docker/cli-plugins/docker-compose 2>/dev/null || true
+    ${SUDO_PREFIX}chmod +x /usr/local/lib/docker/cli-plugins/docker-compose 2>/dev/null || true
+
     if $DOCKER_BIN compose version >/dev/null 2>&1; then
       COMPOSE_CMD="${DOCKER_BIN} compose"
-    elif command -v docker-compose >/dev/null 2>&1 && ${SUDO_PREFIX}docker-compose version >/dev/null 2>&1; then
-      COMPOSE_CMD="${SUDO_PREFIX}docker-compose"
     fi
   fi
 fi
 
 if [ -z "$COMPOSE_CMD" ]; then
-  echo "[!] Error: Docker Compose is required. Please install 'docker-compose-v2' or 'docker-compose'."
+  echo "[!] Error: Docker Compose is required. Please install 'docker-compose' or 'docker-compose-plugin'."
   exit 1
 fi
 
