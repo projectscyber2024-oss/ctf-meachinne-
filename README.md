@@ -213,26 +213,24 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 
 ## Development & Deployment
 
-### One-Line Setup (Recommended for Linux / CTF Hosts)
+### Quick Start (Recommended for Linux / Kali / CTF Hosts)
 
-On any fresh Linux machine with Docker, run:
+On any fresh Linux or Kali machine, run the one-line deployment command:
+
+```bash
+git clone https://github.com/projectscyber2024-oss/ctf-meachinne-.git && cd ctf-meachinne- && PORT=9000 bash setup.sh
+```
+
+If the repository is already cloned locally:
 
 ```bash
 PORT=9000 bash setup.sh
 ```
 
-Or clone and start directly:
-
-```bash
-git clone https://github.com/noyall-gf/ctf-meachine-.git
-cd ctf-meachine-
-PORT=9000 bash setup.sh
-```
-
-- Application URL: `http://localhost:9000` (or `http://<LAN-IP>:9000`)
-- Pinned runtime: Node.js 22.13.0 inside Docker
-- Native SQLite (`better-sqlite3`) builds inside the container automatically.
-- Database persistence: stored in the Docker volume `shopnest-data`.
+- **Application URL:** `http://localhost:9000` (or `http://<LAN-IP>:9000`)
+- **Docker Base:** `node:22-bookworm-slim`
+- **Native Addon:** `better-sqlite3` compiles/runs reliably inside Docker.
+- **Database Persistence:** SQLite database is persisted inside the Docker named volume `shopnest-data` (`/app/data/ctf.sqlite`).
 
 ### Container Management
 
@@ -257,15 +255,15 @@ PORT=9000 bash setup.sh
   docker compose up -d
   ```
 
-### Windows Hosts
+### Windows Hosts (Docker Desktop)
 
 **PowerShell:**
 ```powershell
-git clone https://github.com/noyall-gf/ctf-meachine-.git; cd ctf-meachine-; ./start.ps1
+git clone https://github.com/projectscyber2024-oss/ctf-meachinne-.git; cd ctf-meachinne-; ./start.ps1
 ```
 
 **Command Prompt:**
 ```cmd
-git clone https://github.com/noyall-gf/ctf-meachine-.git && cd ctf-meachine- && start.bat
+git clone https://github.com/projectscyber2024-oss/ctf-meachinne-.git && cd ctf-meachinne- && start.bat
 ```
 
